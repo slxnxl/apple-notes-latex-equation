@@ -1,2 +1,5 @@
 .venv/
 **/formula.png
+build/
+dist/
+*.spec

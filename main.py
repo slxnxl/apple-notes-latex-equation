@@ -1,4 +1,6 @@
 import pylab
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
 from Foundation import NSData
 from AppKit import NSPasteboard, NSPasteboardTypeString, NSPasteboardTypePNG, NSPasteboardTypeTIFF
 from argparse import ArgumentParser # https://docs.python.org/3/howto/argparse.html#argparse-tutorial
@@ -12,6 +14,8 @@ def get_text_from_clipboard() -> str:
     return text.strip()
 
 def get_formula_from_text(text: str) -> str:
+    if text.startswith("$") and text.endswith("$"):
+        return text
     return f"${text}$"
 
 def get_formula_from_input() -> str:
@@ -46,6 +50,12 @@ def save_formula_as_image(formula: str, file_path: str) -> str:
     # Save the adjusted text.
     fig.savefig(file_path, dpi=dpi)
 
+    # Embed LaTeX source into PNG metadata
+    img = Image.open(file_path)
+    metadata = PngInfo()
+    metadata.add_text("latex", formula)
+    img.save(file_path, pnginfo=metadata)
+
     return file_path
 
 def copy_image_to_clipboard(file_path: str) -> bool:
@@ -72,11 +82,26 @@ def init_argparse() -> ArgumentParser:
         action="store_true",
         help="latex formula given inside clipboard"
     )
+    parser.add_argument(
+        "-e",
+        "--extract",
+        type=str,
+        help="extract latex formula from a PNG file"
+    )
     return parser
 
 def main() -> None:
     parser = init_argparse()
     args = parser.parse_args()
+
+    if args.extract:
+        img = Image.open(args.extract)
+        latex = img.text.get("latex")
+        if latex:
+            print(latex)
+        else:
+            print("No LaTeX metadata found in this image.")
+        return
 
     if args.text:
         formula = get_formula_from_text(args.text)
