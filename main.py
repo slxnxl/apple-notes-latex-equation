@@ -1,6 +1,15 @@
-import pylab
+import os
+
+# Fix PyInstaller resetting MPLCONFIGDIR to a temp dir on every launch,
+# which forces matplotlib to rebuild the font cache every time.
+_mpl_cache = os.path.join(os.path.expanduser("~"), ".latex2clipboard", "mpl")
+os.makedirs(_mpl_cache, exist_ok=True)
+os.environ["MPLCONFIGDIR"] = _mpl_cache
+
+from matplotlib.mathtext import math_to_image
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
+from io import BytesIO
 from Foundation import NSData
 from AppKit import NSPasteboard, NSPasteboardTypeString, NSPasteboardTypePNG, NSPasteboardTypeTIFF
 from argparse import ArgumentParser # https://docs.python.org/3/howto/argparse.html#argparse-tutorial
@@ -27,31 +36,12 @@ def get_formula_from_clipboard() -> str:
     return get_formula_from_text(text)
 
 def save_formula_as_image(formula: str, file_path: str) -> str:
-    """
-    https://stackoverflow.com/a/14163131
-    """
-    fig = pylab.figure()
-    text = fig.text(0, 0, formula)
-
-    # Saving the figure will render the text.
-    dpi = 300
-    fig.savefig(file_path, dpi=dpi)
-
-    # Now we can work with text's bounding box.
-    bbox = text.get_window_extent()
-    width, height = bbox.size / float(dpi) + 0.005
-    # Adjust the figure size so it can hold the entire text.
-    fig.set_size_inches((width, height))
-
-    # Adjust text's vertical position.
-    dy = (bbox.ymin/float(dpi))/height
-    text.set_position((0, -dy))
-
-    # Save the adjusted text.
-    fig.savefig(file_path, dpi=dpi)
+    buf = BytesIO()
+    math_to_image(formula, buf, dpi=300, format='png')
+    buf.seek(0)
 
     # Embed LaTeX source into PNG metadata
-    img = Image.open(file_path)
+    img = Image.open(buf)
     metadata = PngInfo()
     metadata.add_text("latex", formula)
     img.save(file_path, pnginfo=metadata)

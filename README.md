@@ -11,15 +11,33 @@
 
 ## Installation
 
-- `python3 -m venv .venv --upgrade-deps`
-- `. .venv/bin/activate`
-- `pip install -r requirements.txt`
+### Option 1: Pre-built binary (recommended)
+
+Download `latex2clipboard` from the releases page. No Python required.
+
+First run will take ~30 seconds to build the font cache. Subsequent runs are instant (~0.5s).
+
+### Option 2: Build from source
+
+```bash
+python3 -m venv .venv --upgrade-deps
+. .venv/bin/activate
+pip install -r requirements.txt
+pip install pyinstaller
+pyinstaller --onedir -y main.py --name latex2clipboard
+```
+
+The binary will be at `dist/latex2clipboard/latex2clipboard`.
+
+## Setting up Shortcuts
+
 - Create new shortcut in the Shortcuts App
-- Use `execute shell-script`
-- Select only `Text` as input and `Get clipboard` if there is no input
-- Copy full path of binary `.venv/bin/python` and paste it to `execute shell-script`
-- Copy full path of file `main.py` and paste it after the path of python
-- Choose method
+- Add `Run Shell Script` action
+- Set **Input** to `Shortcut Input`, **Pass Input** as `as arguments`
+- Set the shell script to:
+  ```
+  /path/to/latex2clipboard -t "$1"
+  ```
 
 ![Shortcut: Create new shortcut](media/shortcuts-new-shortcut.png)
 
@@ -44,6 +62,19 @@
 - Click on add keyboard shortcut
 
 This method is not recommended because the keyboard shortcut will work on all apps.
+
+## CLI Options
+
+```
+-t, --text       LaTeX formula as argument
+-c, --clipboard  Read LaTeX formula from clipboard
+-e, --extract    Extract LaTeX source from a PNG file
+```
+
+LaTeX source is embedded in the PNG metadata, so you can recover it later:
+```bash
+./latex2clipboard --extract formula.png
+```
 
 ## Resources
 
