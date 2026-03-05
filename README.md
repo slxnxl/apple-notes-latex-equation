@@ -76,6 +76,21 @@ LaTeX source is embedded in the PNG metadata, so you can recover it later:
 ./latex2clipboard --extract formula.png
 ```
 
+## Changes from the original
+
+This is a fork of [esatbayhan/apple-notes-latex-equation](https://github.com/esatbayhan/apple-notes-latex-equation) with the following changes:
+
+### New features
+- **LaTeX metadata in PNG** — the LaTeX source is embedded in the image metadata, so you can extract it later with `--extract`
+- **`--extract` flag** — recover LaTeX source from a previously rendered PNG
+- **PyInstaller support** — can be built as a standalone binary, no Python installation needed
+
+### Fixes & optimizations
+- **Fixed double-dollar wrapping** — formulas already wrapped in `$...$` are no longer double-wrapped
+- **~90x faster startup** with PyInstaller — fixed `MPLCONFIGDIR` being reset to a temp directory on every launch, which forced matplotlib to rebuild the font cache every time
+- **Lightweight rendering** — replaced `pylab.figure()` with `matplotlib.mathtext.math_to_image()` for faster imports and simpler code
+- **Relaxed dependency versions** — `matplotlib>=3.8.0` and `pyobjc>=10.0` for Python 3.13 compatibility
+
 ## Resources
 
 - https://support.apple.com/de-de/guide/shortcuts-mac/apd163eb9f95/mac
